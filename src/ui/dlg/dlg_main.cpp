@@ -452,6 +452,14 @@ BOOL MainDialog::PreTranslateMessage(MSG* pMsg) {
           ExecuteLink(L"http://taiga.erengy.com/#support");
           return TRUE;
         }
+       // Clear CurrentEpisode
+        case VK_F8: {
+            auto anime_item = AnimeDatabase.FindItem(CurrentEpisode.anime_id, false);
+            if (anime_item) {
+                EndWatching(*anime_item, CurrentEpisode);
+            }
+            return TRUE;
+        }
         // Various
         case VK_F5: {
           switch (navigation.GetCurrentPage()) {
