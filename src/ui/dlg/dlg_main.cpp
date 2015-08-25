@@ -36,6 +36,7 @@
 #include "track/monitor.h"
 #include "track/recognition.h"
 #include "track/search.h"
+#include "ui/ui.h"
 #include "ui/dialog.h"
 #include "ui/dlg/dlg_anime_info.h"
 #include "ui/dlg/dlg_anime_list.h"
@@ -452,13 +453,19 @@ BOOL MainDialog::PreTranslateMessage(MSG* pMsg) {
           ExecuteLink(L"http://taiga.erengy.com/#support");
           return TRUE;
         }
-       // Clear CurrentEpisode
+        // Clear CurrentEpisode
         case VK_F8: {
-            auto anime_item = AnimeDatabase.FindItem(CurrentEpisode.anime_id, false);
-            if (anime_item) {
-                EndWatching(*anime_item, CurrentEpisode);
-            }
-            return TRUE;
+          auto anime_item = AnimeDatabase.FindItem(CurrentEpisode.anime_id, false);
+          if (anime_item && (MediaPlayers.current_player_name() == L"Google Chrome" ||
+                              MediaPlayers.current_player_name() == L"Mozilla Firefox" ||
+                              MediaPlayers.current_player_name() == L"Opera")) {
+            MediaPlayers.ClearRunning();
+            EndWatching(*anime_item, CurrentEpisode);
+            ui::ClearStatusText();
+            ui::DlgNowPlaying.SetCurrentId(anime::ID_UNKNOWN);
+            taiga::timers.timer(taiga::kTimerMedia)->Reset();
+          }
+          return TRUE;
         }
         // Various
         case VK_F5: {

@@ -84,6 +84,7 @@ public:
   std::wstring GetTitleFromBrowser(HWND hwnd, const MediaPlayer& media_player);
   std::wstring GetTitleFromStreamingMediaProvider(const std::wstring& url, std::wstring& title);
 
+  void ClearRunning();
 public:
   std::vector<MediaPlayer> items;
 

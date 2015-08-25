@@ -231,6 +231,14 @@ MediaPlayer* MediaPlayers::CheckRunningPlayers() {
   return const_cast<MediaPlayer*>(current_player);
 }
 
+void MediaPlayers::ClearRunning() {
+  player_running_ = false;
+  current_title_ = L"";
+  current_window_handle_ = nullptr;
+  player_running_ = false;
+  title_changed_ = false;
+}
+
 MediaPlayer* MediaPlayers::GetRunningPlayer() {
   return FindPlayer(current_player_name_);
 }
