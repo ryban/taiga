@@ -467,6 +467,20 @@ BOOL MainDialog::PreTranslateMessage(MSG* pMsg) {
           }
           return TRUE;
         }
+        case VK_F9: {
+          bool enable_recognition = Settings.Toggle(taiga::kApp_Option_EnableRecognition);
+          if (enable_recognition) {
+            ui::ChangeStatusText(L"Automatic anime recognition is now enabled.");
+            CurrentEpisode.Set(anime::ID_UNKNOWN);
+          } else {
+            ui::ChangeStatusText(L"Automatic anime recognition is now disabled.");
+            auto anime_item = AnimeDatabase.FindItem(CurrentEpisode.anime_id);
+            CurrentEpisode.Set(anime::ID_NOTINLIST);
+            if (anime_item)
+              EndWatching(*anime_item, CurrentEpisode);
+          }
+          return TRUE;
+        }
         // Various
         case VK_F5: {
           switch (navigation.GetCurrentPage()) {
