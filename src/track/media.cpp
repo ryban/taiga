@@ -340,12 +340,13 @@ void ProcessMediaPlayerStatus(const MediaPlayer* media_player) {
       }
       taiga::timers.timer(taiga::kTimerMedia)->Reset();
 
-    // Media player was running, but not watching
+    // Media player was running, but the media was not recognized
     } else if (MediaPlayers.player_running()) {
       ui::ClearStatusText();
       CurrentEpisode.Set(anime::ID_UNKNOWN);
       MediaPlayers.set_player_running(false);
       ui::DlgNowPlaying.SetCurrentId(anime::ID_UNKNOWN);
+      taiga::timers.timer(taiga::kTimerMedia)->Reset();
     }
   }
 }
@@ -434,17 +435,19 @@ bool MediaPlayers::GetTitleFromProcessHandle(HWND hwnd, ULONG process_id,
   if (hwnd != nullptr && process_id == 0)
     GetWindowThreadProcessId(hwnd, &process_id);
 
-  std::vector<std::wstring> files_vector;
+  std::vector<std::wstring> process_files;
 
-  if (!GetProcessFiles(process_id, files_vector))
+  if (!GetProcessFiles(process_id, process_files))
     return false;
 
-  for (const auto& path : files_vector) {
+  for (auto path : process_files) {
     if (Meow.IsValidFileExtension(GetFileExtension(path))) {
-      title = path;
-      TranslateDeviceName(title);
-      ConvertToLongPath(title);
-      break;
+      TranslateDeviceName(path);
+      ConvertToLongPath(path);
+      if (Meow.IsValidAnimeType(path)) {
+        title = path;
+        break;
+      }
     }
   }
 

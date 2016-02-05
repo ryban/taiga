@@ -189,6 +189,19 @@ LRESULT AnimeDialog::ImageLabel::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
   return WindowProcDefault(hwnd, uMsg, wParam, lParam);
 }
 
+LRESULT AnimeDialog::EditTitle::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+  switch (uMsg) {
+    case WM_SETFOCUS: {
+      WindowProcDefault(hwnd, uMsg, wParam, lParam);
+      SetSel(0, 0);
+      HideCaret();
+      return 0;
+    }
+  }
+
+  return WindowProcDefault(hwnd, uMsg, wParam, lParam);
+}
+
 BOOL AnimeDialog::OnCommand(WPARAM wParam, LPARAM lParam) {
   if (LOWORD(wParam) == IDC_STATIC_ANIME_IMG &&
       HIWORD(wParam) == STN_CLICKED) {
@@ -419,6 +432,10 @@ void AnimeDialog::GoToNextTab() {
   GoToPreviousTab();
 }
 
+int AnimeDialog::GetMode() const {
+  return mode_;
+}
+
 int AnimeDialog::GetCurrentId() const {
   return anime_id_;
 }
@@ -442,48 +459,70 @@ void AnimeDialog::SetCurrentId(int anime_id) {
 }
 
 void AnimeDialog::SetCurrentPage(int index) {
+  const auto previous_page = current_page_;
   current_page_ = index;
+
+  if (!IsWindow())
+    return;
 
   auto anime_item = AnimeDatabase.FindItem(anime_id_);
   bool anime_in_list = anime_item && anime_item->IsInList();
 
-  if (IsWindow()) {
-    switch (index) {
-      case kAnimePageNone:
-        image_label_.Hide();
-        page_my_info.Hide();
-        page_series_info.Hide();
-        sys_link_.Show();
-        break;
-      case kAnimePageSeriesInfo:
-        image_label_.Show();
-        page_my_info.Hide();
-        page_series_info.Show();
-        sys_link_.Show(mode_ == kDialogModeNowPlaying || !anime_in_list);
-        break;
-      case kAnimePageMyInfo:
-        image_label_.Show();
-        page_series_info.Hide();
-        page_my_info.Show();
-        sys_link_.Hide();
-        break;
-      case kAnimePageNotRecognized:
-        image_label_.Show();
-        page_my_info.Hide();
-        page_series_info.Hide();
-        sys_link_.Show();
-        break;
-    }
-
-    tab_.SetCurrentlySelected(index - 1);
-
-    int show = SW_SHOW;
-    if (mode_ == kDialogModeNowPlaying || !anime_in_list) {
-      show = SW_HIDE;
-    }
-    ShowDlgItem(IDOK, show);
-    ShowDlgItem(IDCANCEL, show);
+  switch (index) {
+    case kAnimePageNone:
+      image_label_.Hide();
+      page_my_info.Hide();
+      page_series_info.Hide();
+      sys_link_.Show();
+      break;
+    case kAnimePageSeriesInfo:
+      image_label_.Show();
+      page_my_info.Hide();
+      page_series_info.Show();
+      sys_link_.Show(mode_ == kDialogModeNowPlaying || !anime_in_list);
+      break;
+    case kAnimePageMyInfo:
+      image_label_.Show();
+      page_series_info.Hide();
+      page_my_info.Show();
+      sys_link_.Hide();
+      break;
+    case kAnimePageNotRecognized:
+      image_label_.Show();
+      page_my_info.Hide();
+      page_series_info.Hide();
+      sys_link_.Show();
+      break;
   }
+
+  if (previous_page != current_page_) {
+    const HWND hwnd = GetFocus();
+    if (::IsWindow(hwnd) && !::IsWindowVisible(hwnd)) {
+      switch (current_page_) {
+        case kAnimePageNone:
+          sys_link_.SetFocus();
+          break;
+        case kAnimePageSeriesInfo:
+          page_series_info.SetFocus();
+          break;
+        case kAnimePageMyInfo:
+          page_my_info.SetFocus();
+          break;
+        case kAnimePageNotRecognized:
+          sys_link_.SetFocus();
+          break;
+      }
+    }
+  }
+
+  tab_.SetCurrentlySelected(index - 1);
+
+  int show = SW_SHOW;
+  if (mode_ == kDialogModeNowPlaying || !anime_in_list) {
+    show = SW_HIDE;
+  }
+  ShowDlgItem(IDOK, show);
+  ShowDlgItem(IDCANCEL, show);
 }
 
 void AnimeDialog::SetScores(const sorted_scores_t& scores) {
@@ -509,14 +548,14 @@ void AnimeDialog::Refresh(bool image, bool series_info, bool my_info, bool conne
   // Set title
   if (anime_item) {
     if (Settings.GetBool(taiga::kApp_List_DisplayEnglishTitles)) {
-      SetDlgItemText(IDC_EDIT_ANIME_TITLE, anime_item->GetEnglishTitle(true).c_str());
+      edit_title_.SetText(anime_item->GetEnglishTitle(true));
     } else {
-      SetDlgItemText(IDC_EDIT_ANIME_TITLE, anime_item->GetTitle().c_str());
+      edit_title_.SetText(anime_item->GetTitle());
     }
   } else if (anime_id_ == anime::ID_NOTINLIST) {
-    SetDlgItemText(IDC_EDIT_ANIME_TITLE, CurrentEpisode.anime_title().c_str());
+    edit_title_.SetText(CurrentEpisode.anime_title());
   } else {
-    SetDlgItemText(IDC_EDIT_ANIME_TITLE, L"Now Playing");
+    edit_title_.SetText(L"Now Playing");
   }
 
   // Set content
@@ -583,26 +622,26 @@ void AnimeDialog::Refresh(bool image, bool series_info, bool my_info, bool conne
       link_count += 2;
     } else {
       content = L"Continue Watching:\n" + content + L"\n";
-      int watched_last_week = 0;
-      foreach_c_(it, History.queue.items) {
-        if (!it->episode || *it->episode == 0)
-          continue;
-        date_diff = date_now - (Date)(it->time.substr(0, 10));
-        if (date_diff <= day_limit)
-          watched_last_week++;
-      }
-      foreach_c_(it, History.items) {
-        if (!it->episode || *it->episode == 0)
-          continue;
-        date_diff = date_now - (Date)(it->time.substr(0, 10));
-        if (date_diff <= day_limit)
-          watched_last_week++;
-      }
-      if (watched_last_week > 0) {
-        content += L"You've watched " + ToWstr(watched_last_week) + L" ";
-        content += watched_last_week == 1 ? L"episode" : L"episodes";
-        content += L" in the last week.\n\n";
-      }
+    }
+    int watched_last_week = 0;
+    foreach_c_(it, History.queue.items) {
+      if (!it->episode || *it->episode == 0)
+        continue;
+      date_diff = date_now - (Date)(it->time.substr(0, 10));
+      if (date_diff <= day_limit)
+        watched_last_week++;
+    }
+    foreach_c_(it, History.items) {
+      if (!it->episode || *it->episode == 0)
+        continue;
+      date_diff = date_now - (Date)(it->time.substr(0, 10));
+      if (date_diff <= day_limit)
+        watched_last_week++;
+    }
+    if (watched_last_week > 0) {
+      content += L"You've watched " + ToWstr(watched_last_week) + L" ";
+      content += watched_last_week == 1 ? L"episode" : L"episodes";
+      content += L" in the last week.\n\n";
     }
 
     // Available episodes
@@ -691,7 +730,10 @@ void AnimeDialog::Refresh(bool image, bool series_info, bool my_info, bool conne
     if (anime_item && anime_item->IsInList()) {
       content += L"<a href=\"EditAll(" + ToWstr(anime_id_) + L")\">Edit</a>";
     } else {
-      content += L"<a href=\"AddToList()\">Add to list</a>";
+      int status = anime::kPlanToWatch;
+      if (mode_ == kDialogModeNowPlaying || CurrentEpisode.anime_id == anime_id_)
+        status = anime::kWatching;
+      content += L"<a href=\"AddToList(" + ToWstr(status) + L")\">Add to list</a>";
     }
     if (anime_item && mode_ == kDialogModeNowPlaying) {
       content += L" \u2022 <a id=\"menu\" href=\"Announce\">Share</a>";

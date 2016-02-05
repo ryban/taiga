@@ -56,12 +56,13 @@ public:
   bool Search(const std::wstring& title, std::vector<int>& anime_ids);
 
   void InitializeTitles();
-  void UpdateTitles(const anime::Item& anime_item);
+  void UpdateTitles(const anime::Item& anime_item, bool erase_ids = false);
 
   sorted_scores_t GetScores() const;
 
   bool IsBatchRelease(const anime::Episode& episode) const;
   bool IsValidAnimeType(const anime::Episode& episode) const;
+  bool IsValidAnimeType(const std::wstring& path) const;
   bool IsValidFileExtension(const anime::Episode& episode) const;
   bool IsValidFileExtension(const std::wstring& extension) const;
 

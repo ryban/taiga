@@ -22,6 +22,19 @@
 		<folder>%ProgramFiles%\ALLPlayer\</folder>
 		<folder>%ProgramW6432%\ALLPlayer\</folder>
 	</player>
+	<!-- Baka MPlayer -->
+	<player>
+		<name>Baka MPlayer</name>
+		<enabled>1</enabled>
+		<visible>1</visible>
+		<mode>0</mode>
+		<class>Qt5QWindowIcon</class>
+		<file>Baka MPlayer.exe</file>
+		<folder>%ProgramFiles%\Baka-MPlayer.i686\</folder>
+		<folder>%ProgramW6432%\Baka-MPlayer.i686\</folder>
+		<folder>%ProgramFiles%\Baka-MPlayer.x86_64\</folder>
+		<folder>%ProgramW6432%\Baka-MPlayer.x86_64\</folder>
+	</player>
 	<!-- BESTplayer -->
 	<player>
 		<name>BESTplayer</name>
@@ -33,6 +46,22 @@
 		<folder>%ProgramFiles%\BESTplayer\</folder>
 		<folder>%ProgramW6432%\BESTplayer\</folder>
 		<edit mode="2">BESTplayer</edit>
+	</player>
+	<!-- Bomi Player -->
+	<player>
+		<name>Bomi Player</name>
+		<enabled>1</enabled>
+		<visible>1</visible>
+		<mode>0</mode>
+		<class>Qt5QWindowGLOwnDCIcon</class>
+		<file>bomi.exe</file>
+		<folder>%ProgramFiles%\bomi\</folder>
+		<folder>%ProgramW6432%\bomi\</folder>
+		<folder>%ProgramFiles%\bomi-32bit\bomi\</folder>
+		<folder>%ProgramW6432%\bomi-32bit\bomi\</folder>
+		<folder>%ProgramFiles%\bomi-64bit\bomi\</folder>
+		<folder>%ProgramW6432%\bomi-64bit\bomi\</folder>
+		<edit mode="2">bomi</edit>
 	</player>
 	<!-- BSPlayer -->
 	<player>
@@ -145,6 +174,8 @@
 		<class>MediaPlayerClassicW</class>
 		<file>mpc-hc.exe</file>
 		<file>mpc-hc64.exe</file>
+		<file>mpc-hc_nvo.exe</file>
+		<file>mpc-hc64_nvo.exe</file>
 		<folder>%ProgramFiles%\K-Lite Codec Pack\Media Player Classic\</folder>
 		<folder>%ProgramW6432%\K-Lite Codec Pack\Media Player Classic\</folder>
 		<folder>%ProgramFiles%\K-Lite Codec Pack\MPC-HC\</folder>
@@ -193,6 +224,18 @@
 		<folder>%ProgramFiles%\MpcStar\</folder>
 		<folder>%ProgramW6432%\MpcStar\</folder>
 		<edit mode="2">MPCSTAR</edit>
+	</player>
+	<!-- MPDN -->
+	<player>
+		<name>MPDN</name>
+		<enabled>1</enabled>
+		<visible>0</visible>
+		<mode>1</mode>
+		<class>FilterGraphWindow</class>
+		<class>VsyncWindowClass</class>
+		<file>MediaPlayerDotNet.exe</file>
+		<folder>%ProgramFiles%\MPDN\</folder>
+		<folder>%ProgramW6432%\MPDN\</folder>
 	</player>
 	<!-- mpv -->
 	<player>

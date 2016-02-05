@@ -51,6 +51,7 @@ public:
   bool IsTabVisible() const;
   void GoToPreviousTab();
   void GoToNextTab();
+  int GetMode() const;
   int GetCurrentId() const;
   void SetCurrentId(int anime_id);
   void SetCurrentPage(int index);
@@ -78,7 +79,11 @@ protected:
     AnimeDialog* parent;
   } image_label_;
 
-  win::Edit edit_title_;
+  class EditTitle : public win::Edit {
+  public:
+    LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+  } edit_title_;
+
   win::SysLink sys_link_;
 
   class Tab : public win::Tab {

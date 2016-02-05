@@ -288,7 +288,7 @@ std::wstring MediaPlayers::FromAutomationApi(HWND hwnd, int web_engine,
               element_text->Release();
             }
           }
-          if (!name.empty() && IntersectsWith(name, current_title())) {
+          if (IntersectsWith(name, current_title())) {
             // Tab is still open, just not active
             title = current_title();
             found_tab = true;
@@ -334,10 +334,9 @@ std::wstring MediaPlayers::GetTitleFromBrowser(
       if (IntersectsWith(title, current_title()))
         return current_title();
 
-    // Delay operation to save some CPU
+    // Delay operation to save some CPU cycles
     static int counter = 0;
-    if (counter < 5) {
-      counter++;
+    if (++counter < 5) {
       return current_title();
     } else {
       counter = 0;

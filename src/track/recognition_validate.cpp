@@ -113,15 +113,17 @@ static bool ValidateAnitomyElement(std::wstring str,
 }
 
 bool Engine::IsBatchRelease(const anime::Episode& episode) const {
-  const auto category = anitomy::kElementReleaseInformation;
+  const auto& elements = episode.elements();
 
-  if (episode.elements().empty(category))
-    return false;
+  if (!elements.empty(anitomy::kElementVolumeNumber))
+    return true;  // A volume is always a batch release
 
-  auto keywords = episode.elements().get_all(category);
-  for (const auto& keyword : keywords) {
-    if (IsEqual(keyword, L"Batch"))
-      return true;
+  if (!elements.empty(anitomy::kElementReleaseInformation)) {
+    auto keywords = elements.get_all(anitomy::kElementReleaseInformation);
+    for (const auto& keyword : keywords) {
+      if (IsEqual(keyword, L"Batch"))
+        return true;
+    }
   }
 
   return false;
@@ -140,6 +142,20 @@ bool Engine::IsValidAnimeType(const anime::Episode& episode) const {
       return false;
     }
   }
+
+  return true;
+}
+
+bool Engine::IsValidAnimeType(const std::wstring& path) const {
+  track::recognition::ParseOptions parse_options;
+  parse_options.parse_path = true;
+  parse_options.streaming_media = false;
+
+  anime::Episode episode;
+
+  if (Parse(path, parse_options, episode))
+    if (!IsValidAnimeType(episode))
+      return false;
 
   return true;
 }

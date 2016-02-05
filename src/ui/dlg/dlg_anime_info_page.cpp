@@ -40,6 +40,13 @@ PageBaseInfo::PageBaseInfo()
     : anime_id_(anime::ID_UNKNOWN), parent(nullptr) {
 }
 
+BOOL PageBaseInfo::OnClose() {
+  if (parent && parent->GetMode() == kDialogModeAnimeInformation)
+    parent->OnCancel();
+
+  return TRUE;  // Disables closing via Escape key
+}
+
 BOOL PageBaseInfo::OnInitDialog() {
   // Set new font for headers
   for (int i = 0; i < 3; i++) {
@@ -163,8 +170,13 @@ void PageSeriesInfo::Refresh(int anime_id, bool connect) {
   if (!anime_item)
     return;
 
-  // Set synonyms
-  std::wstring text = Join(anime_item->GetSynonyms(), L", ");
+  // Set alternative titles
+  std::wstring main_title = Settings.GetBool(taiga::kApp_List_DisplayEnglishTitles) ?
+      anime_item->GetEnglishTitle(true) : anime_item->GetTitle();
+  std::vector<std::wstring> titles;
+  anime::GetAllTitles(anime_id_, titles);
+  titles.erase(std::remove(titles.begin(), titles.end(), main_title), titles.end());
+  std::wstring text = Join(titles, L", ");
   if (text.empty())
     text = L"-";
   SetDlgItemText(IDC_EDIT_ANIME_ALT, text.c_str());
@@ -476,7 +488,7 @@ bool PageMyInfo::Save() {
   // Alternative titles
   anime_item->SetUserSynonyms(GetDlgItemText(IDC_EDIT_ANIME_ALT));
   anime_item->SetUseAlternative(IsDlgButtonChecked(IDC_CHECK_ANIME_ALT) == TRUE);
-  Meow.UpdateTitles(*anime_item);
+  Meow.UpdateTitles(*anime_item, true);
 
   // Folder
   anime_item->SetFolder(GetDlgItemText(IDC_EDIT_ANIME_FOLDER));

@@ -166,7 +166,7 @@ int Engine::Identify(anime::Episode& episode, bool give_score,
     if (episode.elements().empty(anitomy::kElementEpisodeNumber)) {
       if (!episode.file_extension().empty()) {
         episode.set_episode_number(1);
-      } else {
+      } else if (episode.elements().empty(anitomy::kElementVolumeNumber)) {
         auto anime_item = AnimeDatabase.FindItem(episode.anime_id);
         if (anime_item) {
           int episode_count = anime_item->GetEpisodeCount();
@@ -212,11 +212,25 @@ void Engine::InitializeTitles() {
   }
 }
 
-void Engine::UpdateTitles(const anime::Item& anime_item) {
-  int anime_id = anime_item.GetId();
+void Engine::UpdateTitles(const anime::Item& anime_item, bool erase_ids) {
+  const int anime_id = anime_item.GetId();
 
   db_[anime_id].normal_titles.clear();
   db_[anime_id].trigrams.clear();
+
+  if (erase_ids) {
+    auto erase_id = [&anime_id](Titles::container_t& titles) {
+      for (auto& title : titles) {
+        title.second.erase(anime_id);
+      }
+    };
+    erase_id(titles_.alternative);
+    erase_id(titles_.main);
+    erase_id(titles_.user);
+    erase_id(normal_titles_.alternative);
+    erase_id(normal_titles_.main);
+    erase_id(normal_titles_.user);
+  }
 
   auto update_title = [&](std::wstring title,
                           Titles::container_t& titles,
@@ -392,8 +406,21 @@ bool Engine::GetTitleFromPath(anime::Episode& episode) {
     }
   }
 
-  if (episode.anime_title().empty())
+  if (episode.anime_title().empty()) {
     return false;
+  } else {
+    // We're parsing the directory name in case it looks like
+    // "[Fansub] Anime Title [Stuff]" rather than just "Anime Title".
+    anitomy::Anitomy anitomy_instance;
+    anitomy_instance.options().parse_episode_number = false;
+    anitomy_instance.options().parse_episode_title = false;
+    anitomy_instance.options().parse_file_extension = false;
+    anitomy_instance.options().parse_release_group = true;
+    if (anitomy_instance.Parse(episode.anime_title())) {
+      auto elements = anitomy_instance.elements();
+      episode.set_anime_title(elements.get(anitomy::kElementAnimeTitle));
+    }
+  }
 
   auto find_number_in_string = [](const std::wstring& str) {
     auto it = std::find_if(str.begin(), str.end(), IsNumericChar);

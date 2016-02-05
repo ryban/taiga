@@ -53,14 +53,14 @@ void OnLibraryEntryDelete(int id);
 void OnLibraryEntryImageChange(int id);
 void OnLibrarySearchTitle(int id, const string_t& results);
 void OnLibraryEntryChangeFailure(int id, const string_t& reason);
-void OnLibraryUpdateFailure(int id, const string_t& reason);
+void OnLibraryUpdateFailure(int id, const string_t& reason, bool not_approved);
 
 bool OnLibraryEntriesEditDelete(const std::vector<int> ids);
 int OnLibraryEntriesEditEpisode(const std::vector<int> ids);
 bool OnLibraryEntriesEditTags(const std::vector<int> ids, std::wstring& tags);
 
 void OnHistoryAddItem(const HistoryItem& history_item);
-void OnHistoryChange();
+void OnHistoryChange(const HistoryItem* history_item = nullptr);
 bool OnHistoryClear();
 int OnHistoryProcessConfirmationQueue(anime::Episode& episode);
 
@@ -74,6 +74,9 @@ bool OnRecognitionCancelConfirm();
 void OnRecognitionFail();
 
 void OnAnimeListHeaderRatingWarning();
+
+void OnSeasonLoad(bool refresh);
+void OnSeasonLoadFail();
 bool OnSeasonRefreshRequired();
 
 void OnSettingsAccountEmpty();
